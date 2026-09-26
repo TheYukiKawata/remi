@@ -9,8 +9,13 @@ const MAX_MESSAGE_LENGTH = 1000;
 type ChatRequest = { learnerId?: unknown; message?: unknown };
 
 export function servePage(env: Env): Response {
-  const html = page.replaceAll("{{TELEGRAM_BOT_USERNAME}}", env.TELEGRAM_BOT_USERNAME);
+  const html = page.replace("{{TELEGRAM_LINK}}", telegramLink(env.TELEGRAM_BOT_USERNAME));
   return new Response(html, { headers: { "content-type": "text/html; charset=utf-8" } });
+}
+
+function telegramLink(botUsername: string): string {
+  if (!/^\w{5,32}$/.test(botUsername)) return "";
+  return `<a href="https://t.me/${botUsername}">Chat on Telegram</a>`;
 }
 
 export async function handleOpen(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {

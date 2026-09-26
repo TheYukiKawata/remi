@@ -144,7 +144,7 @@
     <p class="tagline">Practice a language by chatting. Remi remembers your level, goals, new words and mistakes between sessions. Memories are stored encrypted on Walrus, so don't share anything private.</p>
     <nav class="links">
       <button type="button" class="memory-toggle" id="memory-toggle">What do you remember about me?</button>
-      <a id="telegram-link" href="https://t.me/{{TELEGRAM_BOT_USERNAME}}">Chat on Telegram</a>
+      {{TELEGRAM_LINK}}
       <a href="https://github.com/TheYukiKawata/remi">Source</a>
     </nav>
   </header>
@@ -172,9 +172,6 @@
   const composer = document.getElementById("composer");
   const input = document.getElementById("input");
   const send = document.getElementById("send");
-  const telegramLink = document.getElementById("telegram-link");
-
-  if (telegramLink.href.endsWith("/")) telegramLink.remove();
 
   const learnerId = loadLearnerId();
 
