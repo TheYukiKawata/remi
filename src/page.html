@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Remi, a language partner that remembers you</title>
+<meta name="description" content="Practice a language by chatting with Remi. Remi remembers your level, goals, words and mistakes between sessions, using Walrus Memory.">
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #f6f3ee;
+    --surface: #ece7df;
+    --ink: #22201c;
+    --muted: #5e5850;
+    --accent: #c23f24;
+    --accent-ink: #fff8f2;
+    --mine: #f3dcd3;
+    --ring: #1f5fd1;
+    --radius: 16px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1b1a18;
+      --surface: #2a2825;
+      --ink: #ece7df;
+      --muted: #b3aca2;
+      --accent: #e0654a;
+      --accent-ink: #1b1a18;
+      --mine: #4a2e26;
+      --ring: #8ab4ff;
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font: 400 16px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  .app {
+    display: flex;
+    flex-direction: column;
+    max-width: 720px;
+    height: 100dvh;
+    margin: 0 auto;
+    padding: 16px;
+    gap: 16px;
+  }
+  header { display: flex; flex-direction: column; gap: 4px; }
+  h1 { margin: 0; font-size: 28px; font-weight: 700; letter-spacing: -0.02em; }
+  .tagline { margin: 0; color: var(--muted); max-width: 60ch; }
+  .links { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 4px; }
+  a, button { color: inherit; }
+  a:focus-visible, button:focus-visible, textarea:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--ring);
+  }
+  .log {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 4px;
+  }
+  .message {
+    max-width: 85%;
+    padding: 8px 16px;
+    border-radius: var(--radius);
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+  .remi { align-self: flex-start; background: var(--surface); }
+  .learner { align-self: flex-end; background: var(--mine); }
+  .status { align-self: flex-start; color: var(--muted); padding: 8px 16px; }
+  .status[data-kind="error"] { color: var(--accent); }
+  form {
+    display: flex;
+    gap: 8px;
+    align-items: flex-end;
+    padding: 8px;
+    background: var(--surface);
+    border-radius: calc(var(--radius) + 8px);
+  }
+  textarea {
+    flex: 1;
+    min-width: 0;
+    min-height: 44px;
+    max-height: 160px;
+    resize: none;
+    padding: 10px 8px;
+    border: 0;
+    border-radius: var(--radius);
+    background: transparent;
+    color: inherit;
+    font: inherit;
+  }
+  .send {
+    min-width: 88px;
+    min-height: 44px;
+    padding: 8px 16px;
+    border: 0;
+    border-radius: var(--radius);
+    background: var(--accent);
+    color: var(--accent-ink);
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 120ms ease-out;
+  }
+  .send:active { transform: scale(0.96); }
+  .send:disabled { opacity: 0.6; cursor: progress; }
+  .memory-toggle {
+    min-height: 44px;
+    padding: 8px 16px;
+    border: 0;
+    border-radius: var(--radius);
+    background: var(--surface);
+    font: inherit;
+    cursor: pointer;
+  }
+  dialog {
+    width: min(560px, calc(100vw - 32px));
+    max-height: 80dvh;
+    padding: 16px;
+    border: 0;
+    border-radius: var(--radius);
+    background: var(--bg);
+    color: var(--ink);
+  }
+  dialog::backdrop { background: rgb(20 18 16 / 0.5); }
+  dialog h2 { margin: 0 0 8px; font-size: 20px; font-weight: 700; }
+  dialog p { margin: 0 0 8px; color: var(--muted); }
+  dialog ul { margin: 0 0 16px; padding-left: 16px; display: flex; flex-direction: column; gap: 8px; }
+  dialog li { overflow-wrap: anywhere; }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>Remi</h1>
+    <p class="tagline">Practice a language by chatting. Remi remembers your level, goals, new words and mistakes between sessions. Memories are stored encrypted on Walrus, so don't share anything private.</p>
+    <nav class="links">
+      <button type="button" class="memory-toggle" id="memory-toggle">What do you remember about me?</button>
+      <a id="telegram-link" href="https://t.me/{{TELEGRAM_BOT_USERNAME}}">Chat on Telegram</a>
+      <a href="https://github.com/TheYukiKawata/remi">Source</a>
+    </nav>
+  </header>
+
+  <main class="log" id="log" aria-live="polite"></main>
+
+  <form id="composer">
+    <textarea id="input" name="message" rows="1" maxlength="1000" placeholder="Write to Remi" aria-label="Message to Remi" required></textarea>
+    <button type="submit" class="send" id="send">Send</button>
+  </form>
+</div>
+
+<dialog id="memory-dialog" aria-labelledby="memory-title">
+  <h2 id="memory-title">What Remi remembers</h2>
+  <p id="memory-status"></p>
+  <ul id="memory-list"></ul>
+  <form method="dialog"><button class="memory-toggle">Close</button></form>
+</dialog>
+
+<script>
+  const SPINNER_DELAY_MS = 200;
+  const SPINNER_MIN_MS = 400;
+
+  const log = document.getElementById("log");
+  const composer = document.getElementById("composer");
+  const input = document.getElementById("input");
+  const send = document.getElementById("send");
+  const telegramLink = document.getElementById("telegram-link");
+
+  if (telegramLink.href.endsWith("/")) telegramLink.remove();
+
+  const learnerId = loadLearnerId();
+
+  function loadLearnerId() {
+    try {
+      const saved = localStorage.getItem("remi-learner-id");
+      if (saved) return saved;
+      const created = crypto.randomUUID();
+      localStorage.setItem("remi-learner-id", created);
+      return created;
+    } catch {
+      return crypto.randomUUID();
+    }
+  }
+
+  function addMessage(author, text) {
+    const element = document.createElement("div");
+    element.className = `message ${author}`;
+    element.textContent = text;
+    log.append(element);
+    log.scrollTop = log.scrollHeight;
+  }
+
+  function showStatus(text, kind) {
+    const element = document.createElement("div");
+    element.className = "status";
+    element.dataset.kind = kind;
+    element.textContent = text;
+    log.append(element);
+    log.scrollTop = log.scrollHeight;
+    return element;
+  }
+
+  async function post(path, body) {
+    const response = await fetch(path, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ learnerId, ...body }),
+    });
+    if (!response.ok) throw new Error(`${path} returned ${response.status}`);
+    return response.json();
+  }
+
+  async function withTypingIndicator(work) {
+    let indicator = null;
+    let shownAt = 0;
+    const timer = setTimeout(() => {
+      indicator = showStatus("Remi is typing…", "typing");
+      shownAt = Date.now();
+    }, SPINNER_DELAY_MS);
+    try {
+      return await work();
+    } finally {
+      clearTimeout(timer);
+      if (indicator) {
+        const remaining = SPINNER_MIN_MS - (Date.now() - shownAt);
+        if (remaining > 0) await new Promise((resolve) => setTimeout(resolve, remaining));
+        indicator.remove();
+      }
+    }
+  }
+
+  async function open() {
+    send.disabled = true;
+    try {
+      const { messages } = await withTypingIndicator(() => post("/api/open", {}));
+      for (const message of messages) addMessage(message.role === "user" ? "learner" : "remi", message.content);
+    } catch {
+      showStatus("Couldn't reach Remi. Reload the page to try again.", "error");
+    } finally {
+      send.disabled = false;
+      input.focus();
+    }
+  }
+
+  composer.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const message = input.value.trim();
+    if (!message) return;
+    input.value = "";
+    addMessage("learner", message);
+    send.disabled = true;
+    try {
+      const { reply } = await withTypingIndicator(() => post("/api/chat", { message }));
+      addMessage("remi", reply);
+    } catch {
+      showStatus("Your message didn't reach Remi. Send it again.", "error");
+      input.value = message;
+    } finally {
+      send.disabled = false;
+      input.focus();
+    }
+  });
+
+  input.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" && !event.shiftKey && !event.isComposing) {
+      event.preventDefault();
+      composer.requestSubmit();
+    }
+  });
+
+  const memoryDialog = document.getElementById("memory-dialog");
+  const memoryStatus = document.getElementById("memory-status");
+  const memoryList = document.getElementById("memory-list");
+
+  document.getElementById("memory-toggle").addEventListener("click", async () => {
+    memoryList.replaceChildren();
+    memoryStatus.textContent = "Reading your memories from Walrus…";
+    memoryDialog.showModal();
+    try {
+      const { memories } = await post("/api/memory", {});
+      memoryStatus.textContent = memories.length
+        ? "Remi recalls these facts at the start of each session."
+        : "Nothing yet. Tell Remi which language you're learning, your level and why.";
+      for (const memory of memories) {
+        const item = document.createElement("li");
+        item.textContent = memory;
+        memoryList.append(item);
+      }
+    } catch {
+      memoryStatus.textContent = "Couldn't read your memories. Try again in a minute.";
+    }
+  });
+
+  open();
+</script>
+</body>
+</html>

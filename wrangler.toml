@@ -1,0 +1,24 @@
+name = "remi"
+main = "src/index.ts"
+compatibility_date = "2026-09-01"
+compatibility_flags = ["nodejs_compat"]
+routes = [{ pattern = "remi.yukikawata.fyi", custom_domain = true }]
+rules = [{ type = "Text", globs = ["**/*.html"], fallthrough = true }]
+
+[ai]
+binding = "AI"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "remi"
+database_id = "c6750371-723c-4c4f-9f8c-656257d2a83b"
+migrations_dir = "migrations"
+
+[vars]
+MODEL = "@cf/google/gemma-4-26b-a4b-it"
+MEMWAL_RELAYER_URL = "https://relayer.memory.walrus.xyz"
+MEMWAL_ACCOUNT_ID = "0x02aa413502d3889006d199a6bf2af23f40c21b88687d424ec2278b666053bd81"
+TELEGRAM_BOT_USERNAME = ""
+
+[observability]
+enabled = true

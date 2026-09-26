@@ -1,0 +1,22 @@
+{
+  "dependencies": {
+    "@mysten-incubation/memwal": "0.1.8",
+    "@mysten/seal": "^1.4.16",
+    "@mysten/sui": "^2.33.1"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20260926.1",
+    "bun-types": "^1.4.2",
+    "typescript": "^7.0.2",
+    "wrangler": "^4.141.0"
+  },
+  "name": "remi",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "check": "tsc && tsc -p tsconfig.bun.json",
+    "test": "bun test"
+  }
+}
