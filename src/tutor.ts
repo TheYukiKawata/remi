@@ -22,7 +22,7 @@ const REPLY_MAX_TOKENS = 400;
 const EXTRACTION_MAX_TOKENS = 500;
 
 export const DAILY_LIMIT_TEXT = `You've sent ${DAILY_MESSAGE_LIMIT} messages today, which is Remi's daily limit per learner. Come back tomorrow (UTC) and I'll remember where we stopped.`;
-export const QUOTA_TEXT = "Remi has used today's free AI quota. It resets at 00:00 UTC. Your memories are safe, so we'll pick up from here.";
+export const QUOTA_TEXT = "Remi has hit its free AI limit for now. Try again in a few hours. Your memories are safe, so we'll pick up from here.";
 
 export type OpenedChat = { resumed: boolean; messages: ChatMessage[] };
 

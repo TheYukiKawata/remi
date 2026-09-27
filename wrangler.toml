@@ -15,6 +15,7 @@ database_id = "c6750371-723c-4c4f-9f8c-656257d2a83b"
 migrations_dir = "migrations"
 
 [vars]
+LLM_PROVIDER = "workers-ai"
 MODEL = "@cf/google/gemma-4-26b-a4b-it"
 MEMWAL_RELAYER_URL = "https://relayer.memory.walrus.xyz"
 MEMWAL_ACCOUNT_ID = "0x02aa413502d3889006d199a6bf2af23f40c21b88687d424ec2278b666053bd81"
