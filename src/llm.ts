@@ -4,6 +4,8 @@ export type PromptMessage = { role: "system" | "user" | "assistant"; content: st
 
 export class ModelQuotaExhausted extends Error {}
 
+export class EmptyModelReply extends Error {}
+
 type WorkersAiOutput = {
   response?: string;
   choices?: { message?: { content?: string } }[];
@@ -17,7 +19,9 @@ export async function complete(env: Env, messages: PromptMessage[], maxTokens: n
   const text = env.LLM_PROVIDER === "gemini"
     ? await completeWithGemini(env, messages, maxTokens)
     : await completeWithWorkersAi(env, messages, maxTokens);
-  return text.trim();
+  const trimmed = text.trim();
+  if (trimmed.length === 0) throw new EmptyModelReply(`${env.MODEL} returned no text`);
+  return trimmed;
 }
 
 async function completeWithWorkersAi(env: Env, messages: PromptMessage[], maxTokens: number): Promise<string> {
