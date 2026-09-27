@@ -22,7 +22,7 @@ export async function complete(env: Env, messages: PromptMessage[], maxTokens: n
 
 async function completeWithWorkersAi(env: Env, messages: PromptMessage[], maxTokens: number): Promise<string> {
   try {
-    const output = (await env.AI.run(env.MODEL as keyof AiModels, { messages, max_tokens: maxTokens } as never)) as WorkersAiOutput;
+    const output = (await env.AI.run(env.MODEL as keyof AiModels, { messages, max_tokens: maxTokens, chat_template_kwargs: { enable_thinking: false } } as never)) as WorkersAiOutput;
     return output.response ?? output.choices?.[0]?.message?.content ?? "";
   } catch (error) {
     if (String(error).includes("daily free allocation")) throw new ModelQuotaExhausted(String(error));
